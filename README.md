@@ -1,11 +1,14 @@
 # Highway
 Highway is a shell script to navigate you folders in shell terminal easly.  
 
+# highway -h
+highway - folder shortcut manager
+
 USAGE
     highway <name>                     Jump to the shortcut's folder
     highway -n <name>                  Open the shortcut in a new terminal tab
     highway -v                         Show version informations
-    highway -w                         Outputs the current folder's name on shortcut list 
+    highway -w                         Outputs the current folder's name on shortcut list
     highway -l                         List all shortcuts
     highway -l -o                      List all shortcuts alphabetically
     highway -a <name> [path]           Add a shortcut (no path = current folder)
@@ -21,9 +24,9 @@ USAGE
 
 SWITCHES AND ALIASES
     -l   -list                         List shortcuts
-    -v   -version                       Show version number 
-    -w   -whereAmI                      Print current folder's given name 
-    -o   -order  -sort                  Order listed shortcuts 
+    -v   -version                       Show version number
+    -w   -whereAmI                      Print current folder's given name
+    -o   -order  -sort                  Order listed shortcuts
     -n   -new_tab                      Open in a new Windows Terminal tab
     -a   -add, -append                 Add a shortcut
     -d   -r, -delete, -remove          Delete a shortcut
