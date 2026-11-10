@@ -4,7 +4,7 @@ Highway is a shell script to navigate you folders in shell terminal easly.
 # highway -h
 highway - folder shortcut manager
 
-USAGE
+USAGE 
     highway <name>                     Jump to the shortcut's folder
     highway -n <name>                  Open the shortcut in a new terminal tab
     highway -v                         Show version informations
