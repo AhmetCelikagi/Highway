@@ -241,7 +241,7 @@ if ($versionInfo) { # -v
 Name: Highway    
 Version: 1.3.2
 Last Updated: 2026-11-13
-Developer: Alafrano
+Developer: Alafrano (Ahmet Hakan Çeliğı | AhmetCelikagi)
 '@ | Write-Host
     exit 0
 }
