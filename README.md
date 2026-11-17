@@ -7,7 +7,7 @@ Highway is a shell script to help users navigate in shell environment easier. Wh
 - Edit shortcuts in shell environment
 - Print shortcut list
 - Navigate to sibling folders
-- 
+  
 ## Dev Notes
 Usage of this script is simple to use and one can write "highway -h" in shell to learn more. 
 I created this scripts to both learn and navigate in shell easier rather then writing cd command many times. 
