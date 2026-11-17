@@ -80,4 +80,16 @@ Add the script to your ~/.bashrc (or ~/.bash_profile on macOS) and reload:
 ### Bash:
 `highway <name>                     Jump to the shortcut's folder`
 
+## Known Bugs
+- [ ] Parameters do not work together. Parameter Sets required.
+- [ ] Renaming "work" to "WORK" is not allowed. Since it gives name already exist error.
+
+## Roadmap
+- [ ] Bash will have features that PowerShell has
+- [ ] Tab Completion
+- [ ] Typo Checker
+- [ ] Subpaths
+- [ ] Tags
+- [ ] Polishing
+
 
