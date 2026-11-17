@@ -1,5 +1,5 @@
 # Highway 
-## What It is?
+## What is it?
 Highway is a shell script to help users navigate in shell environment easier. Whether it is PowerShell or Bash with this script one can:
 - Open paths that are saved in shortcut list
 - Add and delete paths in shortcut list
@@ -7,20 +7,23 @@ Highway is a shell script to help users navigate in shell environment easier. Wh
 - Edit shortcuts in shell environment
 - Print shortcut list
 - Navigate to sibling folders
-## Dev Notes:
-Usage of this script is very idiomatic and one can write "highway -h" in shell to learn more. 
+  
+## Dev Notes
+Usage of this script is simple to use and one can write "highway -h" in shell to learn more. 
 I created this scripts to both learn and navigate in shell easier rather then writing cd command many times. 
 I use this script daily and I would like to share with anyone who has the same problem.
-I also like any thoughts on improvements and found bugs.
+I also like any thoughts on improvements and bug reports.
 Bash part of this behind, and lacks some features PowerShell part has.
 I am still improving both to make them more polished.
 
-## Installation:
+## Installation
 Because Highway changes the working directory of your active terminal session, it must be sourced into your shell profile rather than executed as a standalone script.
-First clone the repository
+First clone the repository:
+`git clone <your-repo-url> ~/.highway`
 Do following steps and then verify with:
 `highway -h`
-### For PowerShell:
+
+### For PowerShell
 1- Allow local scripts to run (Windows only):
 `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
 
