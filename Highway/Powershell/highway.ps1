@@ -1,4 +1,6 @@
-﻿param(
+﻿# Highway: PowerShell Script
+
+param(
     [Parameter(Position = 0)]
     [Alias('sn')]
     [string]$shortcutName,
@@ -95,7 +97,16 @@ function Move-ToSibling {
         [int]$Direction = 1
     )
 
-    $currentDir = Get-Item -LiteralPath (Get-Location).Path
+    if (-not (IsCurrentValidPath)) {
+        return $null
+    }
+
+    $currentDir = Get-Item -LiteralPath (Get-Location).ProviderPath -Force
+
+    if ($currentDir.Attributes -band [System.IO.FileAttributes]::Hidden) {
+        Write-Error "Current folder is hidden. -nf, -pf feature does not support hidden folders."
+        return $null
+    }
     $parentDir = $currentDir.Parent
 
     if (-not $parentDir) {
@@ -119,7 +130,7 @@ function Move-ToSibling {
     }
 
     if ($currentIndex -eq -1) {
-        Write-Host "Current folder is hidden, so it is not part of the sibling list."
+        Write-Host "Current folder could not found in parent listing."
         return $null
     }
 
@@ -156,7 +167,7 @@ function Remove-Shortcut {
     }
 
     if ($found){
-        Set-Content -LiteralPath $shortcutsFile -Value $newLines -Encoding utf8
+        SaveShortcuts -Lines $newLines
     }
 
     return $found
@@ -166,6 +177,25 @@ function IsDrivePath {
     param([string]$targetPath)
 
     return $targetPath.EndsWith(":\")
+}
+
+function IsCurrentValidPath {
+    $currentDir = (Get-Location)
+
+    if (-not ($currentDir.Provider.Name -ieq "FileSystem")) {
+        Write-Error "Current folder is not a valid path"
+        return $false
+    }
+
+    return $true
+}
+
+function SaveShortcuts {
+    param([AllowEmptyCollection()][string[]]$Lines)
+
+    $tempFile = "$shortcutsFile.tmp"
+    Set-Content -LiteralPath $tempFile -Value $lines -Encoding utf8 -ErrorAction Stop
+    Move-Item -LiteralPath $tempFile -Destination $shortcutsFile -Force -ErrorAction Stop
 }
 
 $shortcutsFile = Join-Path $PSScriptRoot 'shortcuts.txt'
@@ -239,9 +269,9 @@ NOTES
 if ($versionInfo) { # -v
     @'
 Name: Highway    
-Version: 1.3.2
-Last Updated: 2026-11-13
-Developer: Alafrano (Ahmet Hakan Çeliğı | AhmetCelikagi)
+Version: 1.3.3
+Last Updated: 2026-11-17
+Developer: Alafrano
 '@ | Write-Host
     exit 0
 }
@@ -251,17 +281,21 @@ if ($whereAmI) { # -w
         exit 0
     }
 
-    $current_path = (Get-Location).Path
-    $name_matches = @()
+    if (-not (IsCurrentValidPath)){
+        exit 1
+    }
+
+    $currentPath = (Get-Location).ProviderPath
+    $nameMatches = @()
 
     foreach ($key in $shortcuts.Keys) {
-        if ($shortcuts[$key] -ieq $current_path) {
-            $name_matches += $key
+        if ($shortcuts[$key] -ieq $currentPath) {
+            $nameMatches += $key
         }
     }
     
-    if ($name_matches.Count -gt 0) {
-        $names = $name_matches -join ", "
+    if ($nameMatches.Count -gt 0) {
+        $names = $nameMatches -join ", "
         Write-Host "This directory is saved as '$names' in the shortcut list."
     } else {
         Write-Host "This directory is not saved in shortcut list."
@@ -289,24 +323,24 @@ if ($pruneList) { # -p
         exit 0
     }
 
-    $invalid_keys = @() 
+    $invalidKeys = @() 
 
     foreach ($key in $shortcuts.Keys) {
         $path = $shortcuts[$key]
         $resolved = Resolve-TargetFolder $path
         if (-not $resolved) {
-            $invalid_keys += $key
+            $invalidKeys += $key
         }
     }
 
-    if ($invalid_keys.Count -ieq 0) {
+    if ($invalidKeys.Count -ieq 0) {
         Write-Host "No invalid shortcuts found."
         exit 0
     }
 
-    foreach ($key in $invalid_keys) {
-        $invalid_path = $shortcuts[$key]
-        Write-Host "Invalid shortcut '$key' -> '$invalid_path'"
+    foreach ($key in $invalidKeys) {
+        $invalidPath = $shortcuts[$key]
+        Write-Host "Invalid shortcut '$key' -> '$invalidPath'"
     }
 
     $choice = Read-Host "Choose action Prune All [A] | Cancel [X]"
@@ -321,15 +355,15 @@ if ($pruneList) { # -p
         exit 0
     } 
 
-    $removed_count = 0
+    $removedCount = 0
 
-    foreach ($invalid_key in $invalid_keys) {
-        if (Remove-Shortcut -inputName $invalid_key) {
-            $removed_count++
+    foreach ($invalidKey in $invalidKeys) {
+        if (Remove-Shortcut -inputName $invalidKey) {
+            $removedCount++
         }
     }
 
-    Write-Host "Pruned $removed_count invalid shortcut(s) successfully."
+    Write-Host "Pruned $removedCount invalid shortcut(s) successfully."
     exit 0
 }
 
@@ -340,18 +374,28 @@ if ($addShortcut) { # -a
     }
     $shortcutName = $validatedName
     if ([string]::IsNullOrWhiteSpace($shortcutPath)){
-        $shortcutPath = (Get-Location).Path
+        if (-not (IsCurrentValidPath)) {
+            exit 1
+        }
+
+        $shortcutPath = (Get-Location).ProviderPath
+        $resolved = Resolve-TargetFolder $shortcutPath
     }
     else {
         $resolved = Resolve-TargetFolder $shortcutPath
-        if (-not $resolved) {
-            Write-Error "Folder not found: $shortcutPath"
-            exit 1
-        }
-        $shortcutPath = $resolved
     }
 
-    Add-Content -LiteralPath $shortcutsFile -Value "$shortcutName=$shortcutPath" -Encoding utf8
+    if (-not $resolved) {
+        Write-Error "Folder not found: $shortcutPath"
+        exit 1
+    }
+
+    $shortcutPath = $resolved
+
+    $prevLines = @(Get-Content -LiteralPath $shortcutsFile -Encoding utf8)
+    $newLines = $prevLines + "$shortcutName=$shortcutPath"
+
+    SaveShortcuts -Lines $newLines
     Write-Host "New shortcut named" $shortcutName "added to shortcut list successfuly."
     exit 0
 }
@@ -389,7 +433,8 @@ if ($clearAll) { # -ra
             continue 
         }
     }
-    Set-Content -LiteralPath $shortcutsFile -Value $newLines -Encoding utf8
+    
+    SaveShortcuts -Lines $newLines
     Write-Host "Shortcut list cleared."
     exit 0
 }
@@ -434,7 +479,7 @@ if ($editPath) { # -ep
         exit 1
     }
 
-    Set-Content -LiteralPath $shortcutsFile -Value $newLines -Encoding utf8
+    SaveShortcuts -Lines $newLines
     Write-Host "Path of shortcut named" $shortcutName "changed to" $shortcutPath "successfully."
     exit 0
 }
@@ -473,11 +518,9 @@ if ($editName) { # -en
         exit 1
     }
 
-    else {
-        Set-Content -LiteralPath $shortcutsFile -Value $newLines -Encoding utf8
-        Write-Host "Renamed shortcut" $currentName "to" $validatedNewName "successfully."
-        exit 0
-    }
+    SaveShortcuts -Lines $newLines
+    Write-Host "Renamed shortcut" $currentName "to" $validatedNewName "successfully."
+    exit 0
 }
 
 if ($nextFolder -or $previousFolder) { # -nf & -pf
@@ -539,6 +582,4 @@ if ($newTab) {
     exit 0
 }
 
-# [Environment]::GetEnvironmentVariable("HIGHWAY_PREV", "User")
-# [Environment]::SetEnvironmentVariable("prevPath", $target, "User")
 Set-Location -LiteralPath $target
