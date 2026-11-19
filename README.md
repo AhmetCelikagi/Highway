@@ -19,7 +19,7 @@ I am still improving both to make them more polished.
 ## Installation
 Because Highway changes the working directory of your active terminal session, it must be sourced into your shell profile rather than executed as a standalone script.
 First clone the repository:
-`git clone <your-repo-url> ~/.highway`
+`git clone https://github.com/AhmetCelikagi/Highway.git ~/.highway`
 Do following steps and then verify with:
 `highway -h`
 
